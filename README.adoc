@@ -1,4 +1,6 @@
 = epoch
 
+image::https://github.com/byarr/epoch/actions/workflows/ci.yml/badge.svg[build]
+
 Very simple CLI for converting linux epoch times into something human readable. Very much inspired by https://www.epochconverter.com.
 

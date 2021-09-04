@@ -1,4 +1,4 @@
-use crate::Units::{MICRO, MILLI, NANO, SECONDS};
+use crate::Units::{Micro, Milli, Nano, Seconds};
 use chrono::{DateTime, Local, TimeZone, Utc};
 use std::env::args_os;
 use std::fmt::{Display, Formatter};
@@ -30,25 +30,25 @@ fn main() {
 }
 
 enum Units {
-    SECONDS,
-    MILLI,
-    MICRO,
-    NANO,
+    Seconds,
+    Milli,
+    Micro,
+    Nano,
 }
 
 impl Display for Units {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            SECONDS => {
+            Seconds => {
                 write!(f, "seconds")
             }
-            MILLI => {
+            Milli => {
                 write!(f, "milli-seconds")
             }
-            MICRO => {
+            Micro => {
                 write!(f, "micro-seconds")
             }
-            NANO => {
+            Nano => {
                 write!(f, "nano-seconds")
             }
         }
@@ -58,17 +58,17 @@ impl Display for Units {
 impl Units {
     fn per_second(&self) -> i64 {
         match self {
-            Units::SECONDS => 1,
-            Units::MILLI => 1_000,
-            Units::MICRO => 1_000_000,
-            Units::NANO => 1_000_000_000,
+            Units::Seconds => 1,
+            Units::Milli => 1_000,
+            Units::Micro => 1_000_000,
+            Units::Nano => 1_000_000_000,
         }
     }
     fn to_date_time(&self, i: i64) -> DateTime<Utc> {
         let seconds = i / self.per_second();
 
         let remaining = i - (seconds * self.per_second());
-        let nanos = remaining * (NANO.per_second() / self.per_second());
+        let nanos = remaining * (Nano.per_second() / self.per_second());
         Utc.timestamp(seconds, nanos as u32)
     }
 }
@@ -89,13 +89,13 @@ fn try_parse(input: String) -> Option<ParsedTime> {
 
 fn int_to_datetime(i: i64) -> ParsedTime {
     let unit = if i < 10_000_000_000 {
-        SECONDS
+        Seconds
     } else if i < 10_000_000_000_000 {
-        MILLI
+        Milli
     } else if i < 10_000_000_000_000_000 {
-        MICRO
+        Micro
     } else {
-        NANO
+        Nano
     };
     let dt = unit.to_date_time(i);
     ParsedTime { unit, dt }
