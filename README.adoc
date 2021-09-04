@@ -1,0 +1,4 @@
+= epoch
+
+Very simple CLI for converting linux epoch times into something human readable. Very much inspired by https://www.epochconverter.com.
+
