@@ -1,6 +1,8 @@
 use std::env::args_os;
 use std::process::exit;
 use chrono::{Utc, TimeZone, DateTime, Local};
+use crate::Units::{NANO, MILLI, SECONDS, MICRO};
+use std::fmt::{Display, Formatter};
 
 fn main() {
     let args: Vec<_> = args_os().collect();
@@ -16,16 +18,58 @@ fn main() {
     match option {
         None => { println!("Failed to parse argument")}
         Some(dt) => {
-            println!("UTC:   {}", dt);
 
-            let as_local = dt.with_timezone(&Local);
+            println!("Assuming {}", dt.unit);
+            println!("UTC:   {}", dt.dt);
+
+            let as_local = dt.dt.with_timezone(&Local);
             println!("Local: {}", as_local);
-
         }
     }
 }
 
-fn try_parse(input: String) -> Option<DateTime<Utc>> {
+enum Units {
+    SECONDS,
+    MILLI,
+    MICRO,
+    NANO,
+}
+
+impl Display for Units {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SECONDS => {write!(f, "seconds")}
+            MILLI => {write!(f, "milli-seconds")}
+            MICRO => {write!(f, "micro-seconds")}
+            NANO => {write!(f, "nano-seconds")}
+        }
+    }
+}
+
+impl Units {
+    fn per_second(&self) -> i64 {
+        match self {
+            Units::SECONDS => {1}
+            Units::MILLI => {1_000}
+            Units::MICRO => {1_000_000}
+            Units::NANO => {1_000_000_000}
+        }
+    }
+    fn to_date_time(&self, i: i64) -> DateTime<Utc> {
+        let seconds = i / self.per_second();
+
+        let remaining = i - (seconds * self.per_second());
+        let nanos = remaining * ( NANO.per_second() / self.per_second());
+        Utc.timestamp(seconds, nanos as u32)
+    }
+}
+
+struct ParsedTime {
+    unit: Units,
+    dt: DateTime<Utc>,
+}
+
+fn try_parse(input: String) -> Option<ParsedTime> {
     let int_result: Result<i64, _> = input.parse();
     if let Ok(epoch) = int_result {
         Some(int_to_datetime(epoch))
@@ -34,26 +78,20 @@ fn try_parse(input: String) -> Option<DateTime<Utc>> {
     }
 }
 
-fn int_to_datetime(i: i64) -> DateTime<Utc> {
-    if i < 10_000_000_000 {
-        Utc.timestamp(i, 0)
+fn int_to_datetime(i: i64) -> ParsedTime {
+    let unit =  if i < 10_000_000_000 {
+        SECONDS
     } else if i < 10_000_000_000_000 {
-        //assume epoch millis
-        let seconds = i / 1_000;
-        let millis = i - seconds * 1000;
-        let nanos = millis * 1_000_000;
-        Utc.timestamp(seconds, nanos as u32)
+        MILLI
     } else if i < 10_000_000_000_000_000 {
-        // micro
-        let seconds = i / 1_000_000;
-        let micros = i - seconds * 1_000_000;
-        let nanos = micros * 1_000;
-        Utc.timestamp(seconds, nanos as u32)
+        MICRO
     } else {
-        //nano
-        let seconds = i / 1_000_000_000;
-        let nanos = i - seconds * 1_000_000_000;
-        Utc.timestamp(seconds, nanos as u32)
+        NANO
+    };
+    let dt = unit.to_date_time(i);
+    ParsedTime {
+        unit,
+        dt,
     }
 }
 
@@ -64,21 +102,21 @@ mod tests {
 
     #[test]
     fn test_int_to_datetime_seconds() {
-        assert_eq!(int_to_datetime(1630779114), Utc.ymd(2021, 9, 4).and_hms(18, 11, 54));
+        assert_eq!(int_to_datetime(1630779114).dt, Utc.ymd(2021, 9, 4).and_hms(18, 11, 54));
     }
 
     #[test]
     fn test_int_to_datetime_milliseconds() {
-        assert_eq!(int_to_datetime(1630779114123), Utc.ymd(2021, 9, 4).and_hms_milli(18, 11, 54, 123));
+        assert_eq!(int_to_datetime(1630779114123).dt, Utc.ymd(2021, 9, 4).and_hms_milli(18, 11, 54, 123));
     }
 
     #[test]
     fn test_int_to_datetime_microseconds() {
-        assert_eq!(int_to_datetime(1630779114123456), Utc.ymd(2021, 9, 4).and_hms_micro(18, 11, 54, 123456));
+        assert_eq!(int_to_datetime(1630779114123456).dt, Utc.ymd(2021, 9, 4).and_hms_micro(18, 11, 54, 123456));
     }
 
     #[test]
     fn test_int_to_datetime_nanoseconds() {
-        assert_eq!(int_to_datetime(1630779114123456789), Utc.ymd(2021, 9, 4).and_hms_nano(18, 11, 54, 123456789));
+        assert_eq!(int_to_datetime(1630779114123456789).dt, Utc.ymd(2021, 9, 4).and_hms_nano(18, 11, 54, 123456789));
     }
 }
