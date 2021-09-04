@@ -4,3 +4,13 @@ image::https://github.com/byarr/epoch/actions/workflows/ci.yml/badge.svg[build]
 
 Very simple CLI for converting linux epoch times into something human readable. Very much inspired by https://www.epochconverter.com.
 
+== Usage
+
+`epoch 1234567`
+
+== TODO
+
+- Handle fractional/float numbers
+- Go through https://rust-cli.github.io/book/tutorial/index.html
+- Add options to control output - e.g. suppressing utc or local
+- Add options to force assumed unit
