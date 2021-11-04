@@ -7,6 +7,19 @@ use std::process::exit;
 fn main() {
     let args: Vec<_> = args_os().collect();
 
+    if args.len() == 1 {
+        let date_time = Utc::now();
+        let as_local = date_time.with_timezone(&Local);
+
+        println!("UTC:        {}", date_time.to_rfc3339());
+        println!("Local:      {}", as_local.to_rfc3339());
+
+        println!("Epoch (s):  {}", date_time.timestamp());
+        println!("Epoch (ms): {}", date_time.timestamp_millis());
+
+        return;
+    }
+
     if args.len() != 2 {
         eprintln!("Expected 1 argument got {}", args.len() - 1);
         exit(1);
@@ -21,10 +34,10 @@ fn main() {
         }
         Some(dt) => {
             println!("Assuming {}", dt.unit);
-            println!("UTC:   {}", dt.dt);
+            println!("UTC:     {}", dt.dt);
 
             let as_local = dt.dt.with_timezone(&Local);
-            println!("Local: {}", as_local);
+            println!("Local:   {}", as_local);
         }
     }
 }
